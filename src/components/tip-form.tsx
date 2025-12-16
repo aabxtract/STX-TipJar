@@ -79,7 +79,7 @@ export function TipForm() {
   }
 
   return (
-    <Card>
+    <Card className="border-2 border-accent">
       <CardHeader>
         <CardTitle>Create a Tip</CardTitle>
         <CardDescription>Enter recipient address and amount.</CardDescription>
