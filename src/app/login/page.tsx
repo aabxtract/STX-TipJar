@@ -17,20 +17,20 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, LogIn } from 'lucide-react';
 
-const signUpFormSchema = z.object({
+const loginFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
-  password: z.string().min(8, 'Password must be at least 8 characters long.'),
+  password: z.string(),
 });
 
-type SignUpFormValues = z.infer<typeof signUpFormSchema>;
+type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-export default function SignUpPage() {
+export default function LoginPage() {
   const { toast } = useToast();
 
-  const form = useForm<SignUpFormValues>({
-    resolver: zodResolver(signUpFormSchema),
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -39,13 +39,13 @@ export default function SignUpPage() {
 
   const { isSubmitting } = form.formState;
 
-  async function onSubmit(values: SignUpFormValues) {
-    // Mock sign up logic
+  async function onSubmit(values: LoginFormValues) {
+    // Mock login logic
     console.log(values);
     await new Promise(resolve => setTimeout(resolve, 1500));
     toast({
-      title: 'Account Created!',
-      description: 'You have successfully signed up.',
+      title: 'Logged In!',
+      description: 'You have successfully logged in.',
     });
     form.reset();
   }
@@ -54,8 +54,8 @@ export default function SignUpPage() {
     <div className="container mx-auto max-w-md py-8 px-4">
       <Card>
         <CardHeader>
-          <CardTitle>Create an Account</CardTitle>
-          <CardDescription>Sign up to create your own STX TipJar.</CardDescription>
+          <CardTitle>Log In</CardTitle>
+          <CardDescription>Log in to your account.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -90,9 +90,9 @@ export default function SignUpPage() {
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <UserPlus className="mr-2 h-4 w-4" />
+                  <LogIn className="mr-2 h-4 w-4" />
                 )}
-                {isSubmitting ? 'Signing up...' : 'Sign Up'}
+                {isSubmitting ? 'Logging in...' : 'Log In'}
               </Button>
             </form>
           </Form>
@@ -100,9 +100,9 @@ export default function SignUpPage() {
       </Card>
       <div className="text-center mt-4">
         <p className="text-sm text-muted-foreground">
-          Already have an account?{' '}
-          <Link href="/login" className="underline hover:text-primary">
-            Log in
+          Don't have an account?{' '}
+          <Link href="/signup" className="underline hover:text-primary">
+            Sign up
           </Link>
           .
         </p>
