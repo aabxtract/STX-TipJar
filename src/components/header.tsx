@@ -12,7 +12,7 @@ export function Header() {
             <span className="font-bold">STX TipJar</span>
           </Link>
         </div>
-        <div className="flex items-center justify-end space-x-2">
+        <div className="flex items-center justify-end space-x-2 mr-[75px]">
           <ConnectWalletButton />
         </div>
       </div>
