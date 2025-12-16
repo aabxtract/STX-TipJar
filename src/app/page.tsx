@@ -18,7 +18,7 @@ export default async function Home() {
         <div className="text-center mt-4">
           <p className="text-sm text-muted-foreground">
             Want your own tip jar?{' '}
-            <Link href="#" className="underline hover:text-primary">
+            <Link href="/signup" className="underline hover:text-primary">
               Sign up now
             </Link>
             .
