@@ -42,6 +42,7 @@ export default function SignUpPage() {
       password: '',
       confirmPassword: '',
     },
+    mode: 'onChange',
   });
 
   const { isSubmitting } = form.formState;
