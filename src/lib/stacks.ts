@@ -73,7 +73,7 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
             senderAddress,
             FungibleConditionCode.Equal,
             BigInt(amount * 1000000),
-            'STX.STX'
+            'STX'
         ),
     ];
     
@@ -83,6 +83,7 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
         functionName: 'send-tip',
         functionArgs,
         network,
+        postConditionMode: PostConditionMode.Deny, // Deny the transaction if the post-conditions are not met
         postConditions,
         appDetails: {
             name: 'STX TipJar',
