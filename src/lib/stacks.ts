@@ -1,4 +1,23 @@
 import { formatDistanceToNow } from 'date-fns';
+import { StacksTestnet, StacksMainnet } from '@stacks/network';
+import {
+  callReadOnlyFunction,
+  standardPrincipal,
+  uintCV,
+  stringAsciiCV,
+  ClarityValue,
+  cvToJSON,
+  PostConditionMode,
+  FungibleConditionCode,
+  makeStandardSTXPostCondition,
+  createAssetInfo,
+} from '@stacks/transactions';
+import { userSession } from '@/contexts/wallet-context-provider'; // We will create this
+import { openContractCall } from '@stacks/connect';
+
+// TODO: Replace with your actual contract details
+const CONTRACT_ADDRESS = 'ST3JDRV4QW9SYFSFGT2V1RQ3S1T7CBYG21SF7Y00D';
+const CONTRACT_NAME = 'tipjar';
 
 export interface Tip {
   txId: string;
@@ -9,7 +28,7 @@ export interface Tip {
   message?: string;
 }
 
-// Mock database of tips
+// Mock database of tips - we will replace this with real on-chain data later
 const mockTips: Tip[] = [
   {
     txId: '0x1',
@@ -34,37 +53,52 @@ const mockTips: Tip[] = [
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
     message: 'For the coffee! ☕️ Keep up the awesome streams.',
   },
-  {
-    txId: '0x4',
-    sender: 'SP1CS4S3SH419827D087X73T0JT02V9A9K8EZQR5',
-    recipient: 'SP3EQC532C034V462B2GN3050C773344V3S9SCW1P',
-    amount: 100,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48),
-  },
-  {
-    txId: '0x5',
-    sender: 'SP2J6B0D5N42DJ2D84D9842A1Z57K5X2A4020JT',
-    recipient: 'SP3EQC532C034V462B2GN3050C773344V3S9SCW1P',
-    amount: 1,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72),
-    message: 'Welcome to Stacks!',
-  },
 ];
 
-// Simulates sending a tip and adding it to our mock database
-export async function sendTip(tip: Omit<Tip, 'txId' | 'timestamp'>): Promise<Tip> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newTip: Tip = {
-        ...tip,
-        txId: `0x${(Math.random() * 1e18).toString(16)}`,
-        timestamp: new Date(),
-      };
-      mockTips.unshift(newTip);
-      resolve(newTip);
-    }, 1500); // Simulate network delay
-  });
+
+export async function sendTip(tip: { recipient: string, amount: number, message?: string }) {
+    const { recipient, amount, message } = tip;
+    const network = new StacksTestnet();
+
+    const functionArgs = [
+        standardPrincipal(recipient),
+        uintCV(amount * 1000000), // Convert STX to micro-STX
+        message ? stringAsciiCV(message) : stringAsciiCV(''),
+    ];
+
+    // Post-condition: Ensure the sender transfers the exact amount of STX
+    const postConditions = [
+        makeStandardSTXPostCondition(
+            userSession.loadUserData().profile.stxAddress.testnet,
+            FungibleConditionCode.Equal,
+            uintCV(amount * 1000000).value
+        ),
+    ];
+    
+    const options = {
+        contractAddress: CONTRACT_ADDRESS,
+        contractName: CONTRACT_NAME,
+        functionName: 'send-tip',
+        functionArgs,
+        network,
+        postConditions,
+        appDetails: {
+            name: 'STX TipJar',
+            icon: '/logo.png',
+        },
+        onFinish: (data: any) => {
+            console.log('Transaction finished:', data);
+            // Here you can handle success, e.g., show a toast, trigger a refresh
+        },
+        onCancel: () => {
+            console.log('Transaction cancelled.');
+            // Handle cancellation
+        },
+    };
+
+    await openContractCall(options);
 }
+
 
 // Simulates fetching recent tips
 export async function getRecentTips(limit: number = 10): Promise<Tip[]> {

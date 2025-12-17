@@ -1,21 +1,19 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import { AppConfig, UserSession, showConnect } from '@stacks/connect';
+import { StacksTestnet } from '@stacks/network';
 
-// Mock user data for a connected wallet
-const MOCK_USER_ADDRESSES = [
-    'SP2J6B0D5N42DJ2D84D9842A1Z57K5X2A4020JT',
-    'SP3EQC532C034V462B2GN3050C773344V3S9SCW1P',
-    'SP1CS4S3SH419827D087X73T0JT02V9A9K8EZQR5',
-];
-let addressIndex = 0;
-
+const appConfig = new AppConfig(['store_write', 'publish_data']);
+const userSession = new UserSession({ appConfig });
+const network = new StacksTestnet();
 
 interface WalletContextType {
   isConnected: boolean;
   userAddress: string | null;
-  connectWallet: (switchWallet?: boolean) => void;
+  connectWallet: () => void;
   disconnectWallet: () => void;
+  userSession: UserSession;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -24,22 +22,40 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [userAddress, setUserAddress] = useState<string | null>(null);
 
-  const connectWallet = useCallback((switchWallet = false) => {
-    // Simulate wallet connection
-    if (switchWallet) {
-        addressIndex = (addressIndex + 1) % MOCK_USER_ADDRESSES.length;
+  useEffect(() => {
+    if (userSession.isUserSignedIn()) {
+      const userData = userSession.loadUserData();
+      setIsConnected(true);
+      setUserAddress(userData.profile.stxAddress.testnet);
+    } else {
+        setIsConnected(false);
+        setUserAddress(null);
     }
-    setIsConnected(true);
-    setUserAddress(MOCK_USER_ADDRESSES[addressIndex]);
+  }, []);
+
+  const connectWallet = useCallback(() => {
+    showConnect({
+      appDetails: {
+        name: 'STX TipJar',
+        icon: '/logo.png', // Make sure you have a logo at this path in your public folder
+      },
+      redirectTo: '/',
+      onFinish: () => {
+        const userData = userSession.loadUserData();
+        setIsConnected(true);
+        setUserAddress(userData.profile.stxAddress.testnet);
+      },
+      userSession,
+    });
   }, []);
 
   const disconnectWallet = () => {
-    // Simulate wallet disconnection
+    userSession.signUserOut('/');
     setIsConnected(false);
     setUserAddress(null);
   };
 
-  const value = { isConnected, userAddress, connectWallet, disconnectWallet };
+  const value = { isConnected, userAddress, connectWallet, disconnectWallet, userSession };
 
   return (
     <WalletContext.Provider value={value}>{children}</WalletContext.Provider>

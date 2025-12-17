@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, Loader2, MessageSquare } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Textarea } from './ui/textarea';
 import { useAnimation } from '@/contexts/animation-context';
 
@@ -43,6 +43,7 @@ export function TipForm({ recipient }: TipFormProps) {
   const { isConnected, userAddress } = useWallet();
   const { toast } = useToast();
   const { triggerAnimation } = useAnimation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<TipFormValues>({
     resolver: zodResolver(tipFormSchema),
@@ -59,8 +60,6 @@ export function TipForm({ recipient }: TipFormProps) {
     }
   }, [recipient, form]);
 
-  const { isSubmitting } = form.formState;
-
   async function onSubmit(values: TipFormValues) {
     if (!userAddress) {
       toast({ variant: 'destructive', title: 'Wallet not connected' });
@@ -72,28 +71,35 @@ export function TipForm({ recipient }: TipFormProps) {
       return;
     }
 
+    setIsSubmitting(true);
+    
     try {
       await sendTip({
-        sender: userAddress,
         recipient: values.recipient,
         amount: values.amount,
         message: values.message,
       });
 
+      // The onFinish callback in sendTip will handle the rest
+      // For now, we can optimistically trigger the animation and toast
       triggerAnimation();
-
       toast({
-        title: 'Tip Sent!',
-        description: `You successfully sent ${values.amount} STX to ${values.recipient.substring(0, 10)}...`,
+        title: 'Transaction Broadcasted',
+        description: `Please approve the transaction in your wallet.`,
       });
-      form.reset();
-      router.push(`/address/${values.recipient}`)
+      // We don't reset the form or navigate here anymore, 
+      // let the wallet interaction complete first.
     } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Transaction Failed',
-        description: 'Something went wrong. Please try again.',
+        description: 'Something went wrong when trying to send the tip.',
       });
+    } finally {
+        // Since openContractCall is async and opens a popup, 
+        // we might want to manage the submitting state via the onFinish/onCancel callbacks.
+        // For simplicity, we'll just set it to false after the call is initiated.
+        setIsSubmitting(false);
     }
   }
 
