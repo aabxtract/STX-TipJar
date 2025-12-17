@@ -8,10 +8,9 @@ import { RecentTips } from '@/components/recent-tips';
 import { StatCard } from '@/components/stat-card';
 import { Coins, HandCoins, Clock, Wallet } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { ConnectWalletButton } from '@/components/connect-wallet-button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function DashboardPage() {
   const { userAddress, isConnected, connectWallet } = useWallet();
@@ -45,7 +44,7 @@ export default function DashboardPage() {
                     <CardDescription>Connect your wallet to view your TipJar stats.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={connectWallet}>
+                    <Button onClick={() => connectWallet()}>
                         <Wallet className="mr-2 h-4 w-4" />
                         Connect Wallet
                     </Button>

@@ -1,14 +1,20 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 // Mock user data for a connected wallet
-const MOCK_USER_ADDRESS = 'SP2J6B0D5N42DJ2D84D9842A1Z57K5X2A4020JT';
+const MOCK_USER_ADDRESSES = [
+    'SP2J6B0D5N42DJ2D84D9842A1Z57K5X2A4020JT',
+    'SP3EQC532C034V462B2GN3050C773344V3S9SCW1P',
+    'SP1CS4S3SH419827D087X73T0JT02V9A9K8EZQR5',
+];
+let addressIndex = 0;
+
 
 interface WalletContextType {
   isConnected: boolean;
   userAddress: string | null;
-  connectWallet: () => void;
+  connectWallet: (switchWallet?: boolean) => void;
   disconnectWallet: () => void;
 }
 
@@ -18,11 +24,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [userAddress, setUserAddress] = useState<string | null>(null);
 
-  const connectWallet = () => {
+  const connectWallet = useCallback((switchWallet = false) => {
     // Simulate wallet connection
+    if (switchWallet) {
+        addressIndex = (addressIndex + 1) % MOCK_USER_ADDRESSES.length;
+    }
     setIsConnected(true);
-    setUserAddress(MOCK_USER_ADDRESS);
-  };
+    setUserAddress(MOCK_USER_ADDRESSES[addressIndex]);
+  }, []);
 
   const disconnectWallet = () => {
     // Simulate wallet disconnection

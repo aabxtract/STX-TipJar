@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { truncateAddress } from '@/lib/utils';
-import { ChevronDown, Copy, LogOut, Wallet } from 'lucide-react';
+import { ChevronDown, Copy, LogOut, Wallet, Replace } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function ConnectWalletButton() {
@@ -26,6 +26,15 @@ export function ConnectWalletButton() {
       description: 'Your wallet address has been copied to the clipboard.',
     });
   };
+  
+  const handleSwitchWallet = () => {
+    disconnectWallet();
+    // A small delay to allow state to update before connecting again
+    setTimeout(() => {
+        connectWallet(true); // `true` indicates a switch
+    }, 100);
+  };
+
 
   if (isConnected && userAddress) {
     return (
@@ -44,6 +53,10 @@ export function ConnectWalletButton() {
             <Copy className="mr-2 h-4 w-4" />
             <span>Copy Address</span>
           </DropdownMenuItem>
+           <DropdownMenuItem onClick={handleSwitchWallet}>
+            <Replace className="mr-2 h-4 w-4" />
+            <span>Switch Wallet</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={disconnectWallet}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Disconnect</span>
@@ -54,7 +67,7 @@ export function ConnectWalletButton() {
   }
 
   return (
-    <Button onClick={connectWallet}>
+    <Button onClick={() => connectWallet()}>
       <Wallet className="mr-2 h-4 w-4" />
       Connect Wallet
     </Button>
