@@ -6,8 +6,8 @@ dotenv.config({ path: '.env.local' });
 
 // This is a placeholder for your smart contract.
 // Replace with your actual deployed contract identifier.
-const DEPLOYER_ADDRESS = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
-const CONTRACT_NAME = 'tip-jar-contract';
+const DEPLOYER_ADDRESS = 'ST3JDRV4QW9SYFSFGT2V1RQ3S1T7CBYG21SF7Y00D';
+const CONTRACT_NAME = 'tipjar';
 const FULL_CONTRACT_IDENTIFIER = `${DEPLOYER_ADDRESS}.${CONTRACT_NAME}`;
 
 // This should be the publicly accessible URL where your app is hosted
