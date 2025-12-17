@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { TipForm } from '@/components/tip-form';
 import { Button } from '@/components/ui/button';
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: { recipient?: string } }) {
   return (
     <div className="container mx-auto max-w-xl py-8 px-4">
       <div className="flex flex-col items-center gap-8">
@@ -13,7 +13,7 @@ export default async function Home() {
           </p>
         </div>
         <div className="w-full">
-         <TipForm />
+         <TipForm recipient={searchParams.recipient} />
         </div>
         <div className="text-center mt-4">
           <p className="text-sm text-muted-foreground">

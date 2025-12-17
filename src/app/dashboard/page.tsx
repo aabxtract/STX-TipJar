@@ -55,7 +55,7 @@ export default function DashboardPage() {
     );
   }
   
-  const jarUrl = typeof window !== 'undefined' ? `${window.location.origin}/address/${userAddress}` : '';
+  const jarUrl = typeof window !== 'undefined' ? `${window.location.origin}/?recipient=${userAddress}` : '';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(jarUrl);

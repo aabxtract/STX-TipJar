@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 const STX_ADDRESS_REGEX = /^[SMNPQRS]{1}[0-9A-HJ-NP-Z]{33,39}$/;
 
@@ -30,7 +31,11 @@ const tipFormSchema = z.object({
 
 type TipFormValues = z.infer<typeof tipFormSchema>;
 
-export function TipForm() {
+interface TipFormProps {
+  recipient?: string;
+}
+
+export function TipForm({ recipient }: TipFormProps) {
   const router = useRouter();
   const { isConnected, userAddress } = useWallet();
   const { toast } = useToast();
@@ -38,10 +43,16 @@ export function TipForm() {
   const form = useForm<TipFormValues>({
     resolver: zodResolver(tipFormSchema),
     defaultValues: {
-      recipient: '',
+      recipient: recipient || '',
       amount: 0,
     },
   });
+  
+  useEffect(() => {
+    if (recipient) {
+      form.setValue('recipient', recipient);
+    }
+  }, [recipient, form]);
 
   const { isSubmitting } = form.formState;
 
@@ -68,7 +79,7 @@ export function TipForm() {
         description: `You successfully sent ${values.amount} STX to ${values.recipient.substring(0, 10)}...`,
       });
       form.reset();
-      router.refresh(); // Refresh server components to show the new tip
+      router.push(`/address/${values.recipient}`)
     } catch (error) {
       toast({
         variant: 'destructive',
