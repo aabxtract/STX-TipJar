@@ -12,12 +12,14 @@ import { Separator } from '@/components/ui/separator';
 import { ConnectWalletButton } from '@/components/connect-wallet-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
   const { userAddress, isConnected, connectWallet } = useWallet();
   const [stats, setStats] = useState({ totalTipped: 0, tipCount: 0, latestTip: 'Never' });
   const [tips, setTips] = useState<Tip[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchData() {
@@ -56,6 +58,14 @@ export default function DashboardPage() {
   
   const jarUrl = typeof window !== 'undefined' ? `${window.location.origin}/address/${userAddress}` : '';
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(jarUrl);
+    toast({
+      title: 'Copied to Clipboard',
+      description: 'Your TipJar link has been copied.',
+    });
+  };
+
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -68,7 +78,7 @@ export default function DashboardPage() {
             <p className="text-sm font-medium mb-2">Your Public TipJar Link</p>
             <div className="flex items-center gap-2">
                 <input type="text" value={jarUrl} readOnly className="text-sm p-2 rounded-md bg-background border w-full sm:w-auto break-all"/>
-                <Button size="sm" onClick={() => navigator.clipboard.writeText(jarUrl)}>Copy</Button>
+                <Button size="sm" onClick={handleCopy}>Copy</Button>
             </div>
           </CardContent>
         </Card>
