@@ -6,7 +6,7 @@ import { getStatsForAddress, getTipsForAddress, type Tip } from '@/lib/stacks';
 import { truncateAddress } from '@/lib/utils';
 import { RecentTips } from '@/components/recent-tips';
 import { StatCard } from '@/components/stat-card';
-import { Coins, HandCoins, Clock, Wallet } from 'lucide-react';
+import { Coins, HandCoins, Clock, Wallet, Twitter, Share2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +35,43 @@ export default function DashboardPage() {
     fetchData();
   }, [userAddress]);
 
+  const jarUrl = typeof window !== 'undefined' ? `${window.location.origin}/address/${userAddress}` : '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(jarUrl);
+    toast({
+      title: 'Copied to Clipboard',
+      description: 'Your TipJar link has been copied.',
+    });
+  };
+
+  const shareOnTwitter = () => {
+    const text = "Tip me in STX on my TipJar! It's on-chain, public, and easy to do.";
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(jarUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(twitterUrl, '_blank');
+  };
+  
+  const handleShare = async () => {
+    const shareData = {
+      title: 'My STX TipJar',
+      text: "Tip me in STX on my TipJar! It's on-chain, public, and easy to do.",
+      url: jarUrl,
+    };
+    if (navigator.share && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        console.error('Error sharing:', error);
+        // Fallback to copy if share fails
+        handleCopy();
+      }
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      handleCopy();
+    }
+  };
+
+
   if (!isConnected || !userAddress) {
     return (
         <div className="container mx-auto max-w-4xl py-8 px-4 flex flex-col items-center justify-center h-[60vh]">
@@ -53,16 +90,6 @@ export default function DashboardPage() {
         </div>
     );
   }
-  
-  const jarUrl = typeof window !== 'undefined' ? `${window.location.origin}/?recipient=${userAddress}` : '';
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(jarUrl);
-    toast({
-      title: 'Copied to Clipboard',
-      description: 'Your TipJar link has been copied.',
-    });
-  };
 
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
@@ -72,11 +99,23 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground">Stats for {truncateAddress(userAddress, 8)}</p>
         </div>
         <Card className="bg-card/50">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium mb-2">Your Public TipJar Link</p>
+          <CardHeader className="p-4 pb-2">
+              <p className="text-sm font-medium">Share Your TipJar</p>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
             <div className="flex items-center gap-2">
                 <input type="text" value={jarUrl} readOnly className="text-sm p-2 rounded-md bg-background border w-full sm:w-auto break-all"/>
                 <Button size="sm" onClick={handleCopy}>Copy</Button>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+                <Button size="sm" variant="outline" onClick={shareOnTwitter} className="w-full">
+                    <Twitter className="mr-2"/>
+                    Share on X
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleShare} className="w-full">
+                    <Share2 className="mr-2"/>
+                    Share
+                </Button>
             </div>
           </CardContent>
         </Card>
