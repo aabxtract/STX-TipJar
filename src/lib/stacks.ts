@@ -1,5 +1,6 @@
+
 import { formatDistanceToNow } from 'date-fns';
-import { StacksTestnet, StacksMainnet } from '@stacks/network';
+import { StacksTestnet } from '@stacks/network';
 import {
   callReadOnlyFunction,
   standardPrincipal,
@@ -10,7 +11,6 @@ import {
   PostConditionMode,
   FungibleConditionCode,
   makeStandardFungiblePostCondition,
-  createFungibleAsset,
 } from '@stacks/transactions';
 import { userSession } from '@/lib/wallet-context-provider';
 import { openContractCall } from '@stacks/connect';
@@ -59,6 +59,7 @@ const mockTips: Tip[] = [
 export async function sendTip(tip: { recipient: string, amount: number, message?: string }) {
     const { recipient, amount, message } = tip;
     const network = new StacksTestnet();
+    const senderAddress = userSession.loadUserData().profile.stxAddress.testnet;
 
     const functionArgs = [
         standardPrincipal(recipient),
@@ -69,10 +70,10 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
     // Post-condition: Ensure the sender transfers the exact amount of STX
     const postConditions = [
         makeStandardFungiblePostCondition(
-            userSession.loadUserData().profile.stxAddress.testnet,
+            senderAddress,
             FungibleConditionCode.Equal,
-            uintCV(amount * 1000000).value,
-            createFungibleAsset(CONTRACT_ADDRESS, 'stx', 'stx')
+            BigInt(amount * 1000000),
+            'STX.STX'
         ),
     ];
     
