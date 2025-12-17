@@ -9,10 +9,10 @@ import {
   cvToJSON,
   PostConditionMode,
   FungibleConditionCode,
-  makeStandardSTXPostCondition,
+  makeStandardFungiblePostCondition,
   createAssetInfo,
 } from '@stacks/transactions';
-import { userSession } from '@/contexts/wallet-context-provider'; // We will create this
+import { userSession } from '@/lib/wallet-context-provider';
 import { openContractCall } from '@stacks/connect';
 
 // TODO: Replace with your actual contract details
@@ -68,10 +68,11 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
 
     // Post-condition: Ensure the sender transfers the exact amount of STX
     const postConditions = [
-        makeStandardSTXPostCondition(
+        makeStandardFungiblePostCondition(
             userSession.loadUserData().profile.stxAddress.testnet,
             FungibleConditionCode.Equal,
-            uintCV(amount * 1000000).value
+            uintCV(amount * 1000000).value,
+            createAssetInfo(CONTRACT_ADDRESS, 'stx', 'stx')
         ),
     ];
     
