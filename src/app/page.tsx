@@ -7,7 +7,7 @@ export default async function Home({ searchParams }: { searchParams: { recipient
     <div className="container mx-auto max-w-xl py-8 px-4">
       <div className="flex flex-col items-center gap-8">
         <div className="flex flex-col gap-2 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Send a Tip</h1>
+          <h1 className="text-4xl font-bold tracking-tight font-poppins">Send a Tip</h1>
           <p className="text-muted-foreground">
             Brighten someone&apos;s day with a little STX. All tips are public and on-chain.
           </p>
