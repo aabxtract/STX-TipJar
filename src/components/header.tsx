@@ -9,7 +9,7 @@ export function Header() {
         <div className="flex flex-1 items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <BitcoinIcon className="h-6 w-6 text-primary" />
-            <span className="font-bold">STX TipJar</span>
+            <span className="font-headline font-bold">STX TipJar</span>
           </Link>
         </div>
         <div className="flex items-center justify-end space-x-2">
