@@ -17,7 +17,7 @@ const mockTips: Tip[] = [
     recipient: 'SP1CS4S3SH419827D087X73T0JT02V9A9K8EZQR5',
     amount: 10,
     timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    message: 'Great work on the project!',
+    message: 'Great work on the project! Your efforts are really showing.',
   },
   {
     txId: '0x2',
@@ -32,7 +32,7 @@ const mockTips: Tip[] = [
     recipient: 'SP2J6B0D5N42DJ2D84D9842A1Z57K5X2A4020JT',
     amount: 25,
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    message: 'For the coffee!',
+    message: 'For the coffee! ☕️ Keep up the awesome streams.',
   },
   {
     txId: '0x4',

@@ -19,14 +19,16 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { useEffect } from 'react';
+import { Textarea } from './ui/textarea';
 
 const STX_ADDRESS_REGEX = /^[SMNPQRS]{1}[0-9A-HJ-NP-Z]{33,39}$/;
 
 const tipFormSchema = z.object({
   recipient: z.string().regex(STX_ADDRESS_REGEX, 'Please enter a valid Stacks address.'),
   amount: z.coerce.number().positive('Amount must be greater than 0.'),
+  message: z.string().max(140, 'Message must be 140 characters or less.').optional(),
 });
 
 type TipFormValues = z.infer<typeof tipFormSchema>;
@@ -45,6 +47,7 @@ export function TipForm({ recipient }: TipFormProps) {
     defaultValues: {
       recipient: recipient || '',
       amount: 0,
+      message: '',
     },
   });
   
@@ -72,6 +75,7 @@ export function TipForm({ recipient }: TipFormProps) {
         sender: userAddress,
         recipient: values.recipient,
         amount: values.amount,
+        message: values.message,
       });
 
       toast({
@@ -93,7 +97,7 @@ export function TipForm({ recipient }: TipFormProps) {
     <Card className="border-2 border-primary">
       <CardHeader>
         <CardTitle>Create a Tip</CardTitle>
-        <CardDescription>Enter recipient address and amount.</CardDescription>
+        <CardDescription>Enter recipient address, amount, and an optional message.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -119,6 +123,22 @@ export function TipForm({ recipient }: TipFormProps) {
                   <FormLabel>Amount (STX)</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.000001" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Optional Message
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Say something nice..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

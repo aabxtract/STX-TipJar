@@ -16,7 +16,7 @@ import {
   AvatarFallback,
 } from '@/components/ui/avatar';
 import { Badge } from './ui/badge';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, MessageSquare } from 'lucide-react';
 
 interface RecentTipsProps {
   tips: Tip[];
@@ -45,28 +45,36 @@ export function RecentTips({ tips }: RecentTipsProps) {
           {tips.map((tip) => (
             <TableRow key={tip.txId}>
               <TableCell>
-                <div className="flex items-center gap-3">
-                  <Link href={`/address/${tip.sender}`} className="hover:underline">
-                    <Avatar className="h-8 w-8">
-                       <AvatarFallback>{tip.sender.substring(2,4)}</AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0"/>
-                  <Link href={`/address/${tip.recipient}`} className="hover:underline">
-                     <Avatar className="h-8 w-8">
-                       <AvatarFallback>{tip.recipient.substring(2,4)}</AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <div className="flex flex-col">
-                    <div className="text-sm font-medium flex items-center gap-2">
-                       <Link href={`/address/${tip.sender}`} className="hover:underline hidden sm:inline-block">{truncateAddress(tip.sender)}</Link>
-                       <span className="sm:hidden">sent to</span>
-                       <Link href={`/address/${tip.recipient}`} className="hover:underline hidden sm:inline-block">{truncateAddress(tip.recipient)}</Link>
+                <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-3 mt-1 shrink-0">
+                        <Link href={`/address/${tip.sender}`} className="hover:underline">
+                            <Avatar className="h-8 w-8">
+                            <AvatarFallback>{tip.sender.substring(2,4)}</AvatarFallback>
+                            </Avatar>
+                        </Link>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0"/>
+                        <Link href={`/address/${tip.recipient}`} className="hover:underline">
+                            <Avatar className="h-8 w-8">
+                            <AvatarFallback>{tip.recipient.substring(2,4)}</AvatarFallback>
+                            </Avatar>
+                        </Link>
                     </div>
-                     <div className="text-xs text-muted-foreground sm:hidden">
-                       {formatDistanceToNow(tip.timestamp, { addSuffix: true })}
+                    <div className="flex flex-col gap-1.5">
+                        <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
+                            <Link href={`/address/${tip.sender}`} className="hover:underline hidden sm:inline-block break-all">{truncateAddress(tip.sender)}</Link>
+                            <span className="sm:hidden">sent to</span>
+                            <Link href={`/address/${tip.recipient}`} className="hover:underline hidden sm:inline-block break-all">{truncateAddress(tip.recipient)}</Link>
+                        </div>
+                        {tip.message && (
+                            <div className="text-sm text-muted-foreground flex items-start gap-2 p-2 rounded-md bg-muted/50 border">
+                                <MessageSquare className="h-4 w-4 mt-0.5 shrink-0" />
+                                <p className="leading-snug">{tip.message}</p>
+                            </div>
+                        )}
+                        <div className="text-xs text-muted-foreground sm:hidden">
+                            {formatDistanceToNow(tip.timestamp, { addSuffix: true })}
+                        </div>
                     </div>
-                  </div>
                 </div>
               </TableCell>
               <TableCell className="text-right">
