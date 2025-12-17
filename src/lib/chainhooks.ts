@@ -2,12 +2,11 @@
 import { ChainhooksClient, CHAINHOOKS_BASE_URL } from '@hirosystems/chainhooks-client';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 // This is a placeholder for your smart contract.
 // Replace with your actual deployed contract identifier.
-const CONTRACT_IDENTIFIER = 'SP...'; 
-const DEPLOYER_ADDRESS = 'SP...';
+const DEPLOYER_ADDRESS = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
 const CONTRACT_NAME = 'tip-jar-contract';
 const FULL_CONTRACT_IDENTIFIER = `${DEPLOYER_ADDRESS}.${CONTRACT_NAME}`;
 
@@ -22,9 +21,9 @@ async function registerTipJarChainhook() {
     return;
   }
   
-  if (CONTRACT_IDENTIFIER === 'SP...') {
+  if (DEPLOYER_ADDRESS === 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM') {
     console.warn('The contract identifier is still a placeholder.');
-    console.warn(`Please update 'CONTRACT_IDENTIFIER' in src/lib/chainhooks.ts with your deployed contract address.`);
+    console.warn(`Please update 'DEPLOYER_ADDRESS' and 'CONTRACT_NAME' in src/lib/chainhooks.ts with your deployed contract details.`);
   }
 
   const client = new ChainhooksClient({
@@ -78,4 +77,3 @@ async function registerTipJarChainhook() {
 // You can run this function from a script to register your chainhook.
 // e.g., using `tsx src/lib/chainhooks.ts`
 registerTipJarChainhook();
-
