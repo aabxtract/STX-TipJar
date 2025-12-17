@@ -10,7 +10,7 @@ import {
   PostConditionMode,
   FungibleConditionCode,
   makeStandardFungiblePostCondition,
-  createAssetInfo,
+  createFungibleAsset,
 } from '@stacks/transactions';
 import { userSession } from '@/lib/wallet-context-provider';
 import { openContractCall } from '@stacks/connect';
@@ -72,7 +72,7 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
             userSession.loadUserData().profile.stxAddress.testnet,
             FungibleConditionCode.Equal,
             uintCV(amount * 1000000).value,
-            createAssetInfo(CONTRACT_ADDRESS, 'stx', 'stx')
+            createFungibleAsset(CONTRACT_ADDRESS, 'stx', 'stx')
         ),
     ];
     
