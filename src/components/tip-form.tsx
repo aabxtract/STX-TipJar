@@ -22,6 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { useEffect } from 'react';
 import { Textarea } from './ui/textarea';
+import { useAnimation } from '@/contexts/animation-context';
 
 const STX_ADDRESS_REGEX = /^[SMNPQRS]{1}[0-9A-HJ-NP-Z]{33,39}$/;
 
@@ -41,6 +42,7 @@ export function TipForm({ recipient }: TipFormProps) {
   const router = useRouter();
   const { isConnected, userAddress } = useWallet();
   const { toast } = useToast();
+  const { triggerAnimation } = useAnimation();
 
   const form = useForm<TipFormValues>({
     resolver: zodResolver(tipFormSchema),
@@ -77,6 +79,8 @@ export function TipForm({ recipient }: TipFormProps) {
         amount: values.amount,
         message: values.message,
       });
+
+      triggerAnimation();
 
       toast({
         title: 'Tip Sent!',

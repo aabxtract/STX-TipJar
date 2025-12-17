@@ -3,6 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { WalletProvider } from '@/contexts/wallet-context';
 import { Header } from '@/components/header';
+import { AnimationProvider } from '@/contexts/animation-context';
+import { CoinAnimationOverlay } from '@/components/coin-animation-overlay';
 
 export const metadata: Metadata = {
   title: 'STX TipJar',
@@ -23,11 +25,14 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <WalletProvider>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
-          <Toaster />
+          <AnimationProvider>
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+            </div>
+            <Toaster />
+            <CoinAnimationOverlay />
+          </AnimationProvider>
         </WalletProvider>
       </body>
     </html>
