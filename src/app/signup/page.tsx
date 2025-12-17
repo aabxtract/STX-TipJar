@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, UserPlus } from 'lucide-react';
+import { useWallet } from '@/contexts/wallet-context';
 
 const signUpFormSchema = z
   .object({
@@ -34,6 +36,8 @@ type SignUpFormValues = z.infer<typeof signUpFormSchema>;
 
 export default function SignUpPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const { connectWallet } = useWallet();
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpFormSchema),
@@ -51,11 +55,15 @@ export default function SignUpPage() {
     // Mock sign up logic
     console.log(values);
     await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Connect wallet after successful "sign up"
+    connectWallet();
+
     toast({
       title: 'Account Created!',
       description: 'You have successfully signed up.',
     });
-    form.reset();
+    router.push('/dashboard');
   }
 
   return (
