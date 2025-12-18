@@ -1,29 +1,46 @@
 import Link from 'next/link';
-import { TipForm } from '@/components/tip-form';
 import { Button } from '@/components/ui/button';
+import { LogIn, UserPlus } from 'lucide-react';
 
-export default async function Home({ searchParams }: { searchParams: { recipient?: string } }) {
+export default function Home() {
   return (
-    <div className="container mx-auto max-w-xl py-8 px-4">
-      <div className="flex flex-col items-center gap-8">
-        <div className="flex flex-col gap-2 text-center">
-          <h1 className="text-4xl font-bold tracking-tight font-poppins">Send a Tip</h1>
-          <p className="text-muted-foreground">
-            Brighten someone&apos;s day with a little STX. All tips are public and on-chain.
+    <div className="container mx-auto max-w-2xl py-16 px-4">
+      <div className="flex flex-col items-center gap-8 text-center">
+        
+        <div className="flex flex-col gap-4">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight font-poppins bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent/80">
+            Your Personal STX TipJar
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto">
+            Create a free, on-chain tip jar in seconds. Connect your wallet, share your link, and start receiving tips in Stacks (STX).
           </p>
         </div>
-        <div className="w-full">
-         <TipForm recipient={searchParams.recipient} />
-        </div>
-        <div className="text-center mt-4">
-          <p className="text-sm text-muted-foreground">
-            Want your own tip jar?{' '}
-            <Link href="/signup" className="underline hover:text-primary">
-              Sign up now
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
+          <Button asChild size="lg">
+            <Link href="/signup">
+              <UserPlus />
+              Create Your TipJar
             </Link>
-            .
-          </p>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/login">
+                <LogIn />
+                Login to Dashboard
+            </Link>
+          </Button>
         </div>
+
+        <div className="mt-8 p-6 rounded-lg border bg-card/50 w-full">
+            <h3 className="font-semibold mb-2">How it works:</h3>
+            <ol className="list-decimal list-inside text-left space-y-2 text-sm text-muted-foreground">
+                <li>Sign up and connect your Stacks wallet.</li>
+                <li>Get a unique, shareable link to your personal TipJar page.</li>
+                <li>Share your link on social media, your blog, or anywhere online.</li>
+                <li>Receive tips in STX directly to your wallet, publicly and on-chain.</li>
+            </ol>
+        </div>
+
       </div>
     </div>
   );
