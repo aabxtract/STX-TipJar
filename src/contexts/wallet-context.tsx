@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { AppConfig, UserSession, showConnect } from '@stacks/connect';
 import { StacksTestnet } from '@stacks/network';
+import { useAuth, useUser } from '@/firebase';
+import { signInAnonymously } from 'firebase/auth';
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
 const userSession = new UserSession({ appConfig });
@@ -11,7 +13,7 @@ const network = new StacksTestnet();
 interface WalletContextType {
   isConnected: boolean;
   userAddress: string | null;
-  connectWallet: () => void;
+  connectWallet: (forSignup?: boolean) => void;
   disconnectWallet: () => void;
   userSession: UserSession;
 }
@@ -19,39 +21,47 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const [isConnected, setIsConnected] = useState(false);
+  const auth = useAuth();
+  const { user } = useUser();
   const [userAddress, setUserAddress] = useState<string | null>(null);
+
+  const isConnected = !!userAddress && !!user;
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
       const userData = userSession.loadUserData();
-      setIsConnected(true);
       setUserAddress(userData.profile.stxAddress.testnet);
     } else {
-        setIsConnected(false);
-        setUserAddress(null);
+      setUserAddress(null);
     }
-  }, []);
+  }, [user]);
 
-  const connectWallet = useCallback(() => {
+  const connectWallet = useCallback((forSignup = false) => {
     showConnect({
       appDetails: {
         name: 'STX TipJar',
-        icon: '/logo.png', // Make sure you have a logo at this path in your public folder
+        icon: '/logo.png',
       },
       redirectTo: '/',
       onFinish: () => {
         const userData = userSession.loadUserData();
-        setIsConnected(true);
         setUserAddress(userData.profile.stxAddress.testnet);
+        // If not signing up and not already logged in, sign in anonymously
+        if (!forSignup && !auth.currentUser) {
+          signInAnonymously(auth);
+        }
       },
       userSession,
     });
-  }, []);
+  }, [auth]);
 
   const disconnectWallet = () => {
-    userSession.signUserOut('/');
-    setIsConnected(false);
+    if (userSession.isUserSignedIn()) {
+        userSession.signUserOut('/');
+    }
+    if (auth.currentUser) {
+        auth.signOut();
+    }
     setUserAddress(null);
   };
 

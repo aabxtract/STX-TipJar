@@ -20,6 +20,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, LogIn } from 'lucide-react';
 import { useWallet } from '@/contexts/wallet-context';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const loginFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -32,6 +34,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
   const { connectWallet } = useWallet();
+  const auth = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -44,18 +47,25 @@ export default function LoginPage() {
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: LoginFormValues) {
-    // Mock login logic
-    console.log(values);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Connect wallet after successful "login"
-    connectWallet();
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      
+      // Connect wallet after successful login
+      connectWallet();
 
-    toast({
-      title: 'Logged In!',
-      description: 'You have successfully logged in.',
-    });
-    router.push('/dashboard');
+      toast({
+        title: 'Logged In!',
+        description: 'You have successfully logged in.',
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message || 'Invalid email or password.',
+      });
+    }
   }
 
   return (

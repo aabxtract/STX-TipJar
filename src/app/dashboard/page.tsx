@@ -11,13 +11,29 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useUser } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { userAddress, isConnected, connectWallet } = useWallet();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
   const [stats, setStats] = useState({ totalTipped: 0, tipCount: 0, latestTip: 'Never' });
   const [tips, setTips] = useState<Tip[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isUserLoading) return; // Wait for user state to be determined
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (!userAddress) {
+      connectWallet();
+    }
+  }, [user, isUserLoading, userAddress, router, connectWallet]);
 
   useEffect(() => {
     async function fetchData() {
@@ -38,6 +54,7 @@ export default function DashboardPage() {
   const jarUrl = typeof window !== 'undefined' ? `${window.location.origin}/address/${userAddress}` : '';
 
   const handleCopy = () => {
+    if (!jarUrl) return;
     navigator.clipboard.writeText(jarUrl);
     toast({
       title: 'Copied to Clipboard',
@@ -52,6 +69,7 @@ export default function DashboardPage() {
   };
   
   const handleShare = async () => {
+    if (!jarUrl) return;
     const shareData = {
       title: 'My STX TipJar',
       text: "Tip me in STX on my TipJar! It's on-chain, public, and easy to do.",
@@ -62,23 +80,21 @@ export default function DashboardPage() {
         await navigator.share(shareData);
       } catch (error) {
         console.error('Error sharing:', error);
-        // Fallback to copy if share fails
         handleCopy();
       }
     } else {
-      // Fallback for browsers that don't support Web Share API
       handleCopy();
     }
   };
 
 
-  if (!isConnected || !userAddress) {
+  if (isUserLoading || !user || !isConnected) {
     return (
         <div className="container mx-auto max-w-4xl py-8 px-4 flex flex-col items-center justify-center h-[60vh]">
             <Card className="w-full max-w-md text-center">
                 <CardHeader>
-                    <CardTitle>Welcome to Your Dashboard</CardTitle>
-                    <CardDescription>Connect your wallet to view your TipJar stats.</CardDescription>
+                    <CardTitle>Loading Dashboard...</CardTitle>
+                    <CardDescription>Connecting to your wallet and fetching your data.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Button onClick={() => connectWallet()}>
@@ -96,7 +112,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex flex-col gap-2">
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">My TipJar</h1>
-            <p className="text-sm text-muted-foreground">Stats for {truncateAddress(userAddress, 8)}</p>
+            <p className="text-sm text-muted-foreground">Stats for {truncateAddress(userAddress || '')}</p>
         </div>
         <Card className="bg-card/50">
           <CardHeader className="p-4 pb-2">

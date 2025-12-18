@@ -20,6 +20,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, UserPlus } from 'lucide-react';
 import { useWallet } from '@/contexts/wallet-context';
+import { useAuth, useFirestore } from '@/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 const signUpFormSchema = z
   .object({
@@ -37,7 +40,9 @@ type SignUpFormValues = z.infer<typeof signUpFormSchema>;
 export default function SignUpPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { connectWallet } = useWallet();
+  const { connectWallet, userAddress } = useWallet();
+  const auth = useAuth();
+  const firestore = useFirestore();
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpFormSchema),
@@ -52,18 +57,42 @@ export default function SignUpPage() {
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: SignUpFormValues) {
-    // Mock sign up logic
-    console.log(values);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Connect wallet after successful "sign up"
-    connectWallet();
+    if (!userAddress) {
+      toast({
+        variant: 'destructive',
+        title: 'Wallet Not Connected',
+        description: 'Please connect your Stacks wallet to sign up.',
+      });
+      connectWallet(true);
+      return;
+    }
 
-    toast({
-      title: 'Account Created!',
-      description: 'You have successfully signed up.',
-    });
-    router.push('/dashboard');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      if (user && firestore) {
+        await setDoc(doc(firestore, 'users', user.uid), {
+          id: user.uid,
+          email: values.email,
+          stacksAddress: userAddress,
+          registrationDate: new Date().toISOString(),
+        });
+      }
+
+      toast({
+        title: 'Account Created!',
+        description: 'You have successfully signed up.',
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error("Sign up error:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Sign Up Failed',
+        description: error.message || 'An unexpected error occurred.',
+      });
+    }
   }
 
   return (
@@ -115,7 +144,10 @@ export default function SignUpPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => connectWallet(true)} className="w-full">
+                {userAddress ? `Wallet Connected: ${userAddress.substring(0, 6)}...` : 'Connect Stacks Wallet'}
+              </Button>
+              <Button type="submit" className="w-full" disabled={isSubmitting || !userAddress}>
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
