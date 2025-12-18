@@ -1,0 +1,131 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the STX TipJar application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "stacksAddress": {
+          "type": "string",
+          "description": "The Stacks address associated with the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "username": {
+          "type": "string",
+          "description": "The username chosen by the user (optional)."
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time the user registered.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "stacksAddress",
+        "registrationDate"
+      ]
+    },
+    "Tip": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tip",
+      "type": "object",
+      "description": "Represents a tip transaction recorded in the STX TipJar application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the tip transaction."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to User who sent the tip. (Relationship: User 1:N Tip)"
+        },
+        "recipientAddress": {
+          "type": "string",
+          "description": "The Stacks address of the tip recipient."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of STX tipped."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp of the tip transaction.",
+          "format": "date-time"
+        },
+        "blockHeight": {
+          "type": "number",
+          "description": "The block height at which the tip was recorded on-chain."
+        },
+        "message": {
+          "type": "string",
+          "description": "Optional message included with the tip."
+        }
+      },
+      "required": [
+        "id",
+        "senderId",
+        "recipientAddress",
+        "amount",
+        "timestamp",
+        "blockHeight"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. Includes the unique user ID.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, corresponding to the Firebase Auth UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tips/{tipId}",
+        "definition": {
+          "entityName": "Tip",
+          "schema": {
+            "$ref": "#/backend/entities/Tip"
+          },
+          "description": "Stores tip transactions for a specific user. Includes denormalized 'senderId' to ensure authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user who sent the tip."
+            },
+            {
+              "name": "tipId",
+              "description": "The unique identifier for the tip transaction."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to prioritize authorization independence, clarity, and scalability for the STX TipJar application. It leverages path-based ownership for user data and denormalization to eliminate `get()` calls in security rules. This approach ensures that security rules are straightforward and that atomic operations (transactions/batches) are not compromised. The structure also facilitates efficient list operations and enforces data integrity.\n\nSpecifically, the `/users/{userId}/tips/{tipId}` structure is used to store tips associated with a specific user, creating a 1:N relationship. This structure simplifies security rules by leveraging Firebase's path-based matching. The tips are secured via the user ID.\n\nAuthorization Independence:\nAuthorization independence is achieved by associating each tip with its sender. This eliminates the need to fetch parent document data to determine access. Rules are now atomic and easily debuggable.\n\nQAPs (Rules are not Filters):\nList operations are secured by associating tips to their user. This segregation of data enables rules to perform list operations based on the owner."
+  }
+}
