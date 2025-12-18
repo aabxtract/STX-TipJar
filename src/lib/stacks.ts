@@ -10,7 +10,6 @@ import {
   cvToJSON,
   PostConditionMode,
   FungibleConditionCode,
-  createStandardStxPostCondition,
 } from '@stacks/transactions';
 import { userSession } from '@/lib/wallet-context-provider';
 import { openContractCall } from '@stacks/connect';
@@ -69,11 +68,12 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
 
     // Post-condition: Ensure the sender transfers the exact amount of STX
     const postConditions = [
-        createStandardStxPostCondition(
-            senderAddress,
-            FungibleConditionCode.Equal,
-            BigInt(amount * 1000000)
-        ),
+      {
+        type: 'stx',
+        condition: 'eq',
+        amount: amount * 1000000,
+        address: senderAddress,
+      },
     ];
     
     const options = {
