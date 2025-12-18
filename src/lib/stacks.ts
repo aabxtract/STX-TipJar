@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { StacksTestnet } from '@stacks/network';
 import {
   callReadOnlyFunction,
-  standardPrincipal,
+  standardPrincipalCV,
   uintCV,
   stringAsciiCV,
   ClarityValue,
@@ -61,7 +61,7 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
     const senderAddress = userSession.loadUserData().profile.stxAddress.testnet;
 
     const functionArgs = [
-        standardPrincipal(recipient),
+        standardPrincipalCV(recipient),
         uintCV(amount * 1000000), // Convert STX to micro-STX
         message ? stringAsciiCV(message) : stringAsciiCV(''),
     ];
@@ -69,10 +69,10 @@ export async function sendTip(tip: { recipient: string, amount: number, message?
     // Post-condition: Ensure the sender transfers the exact amount of STX
     const postConditions = [
       {
-        type: 'stx',
-        condition: 'eq',
+        type: 0x01, // STX
+        condition: FungibleConditionCode.Equal,
         amount: amount * 1000000,
-        address: senderAddress,
+        principal: senderAddress,
       },
     ];
     
