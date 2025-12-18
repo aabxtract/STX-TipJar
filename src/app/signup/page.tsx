@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus, Wallet } from 'lucide-react';
 import { useWallet } from '@/contexts/wallet-context';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -77,6 +77,7 @@ export default function SignUpPage() {
           email: values.email,
           stacksAddress: userAddress,
           registrationDate: new Date().toISOString(),
+          isAdmin: false,
         });
       }
 
@@ -144,17 +145,20 @@ export default function SignUpPage() {
                   </FormItem>
                 )}
               />
-              <Button type="button" variant="outline" onClick={() => connectWallet(true)} className="w-full">
-                {userAddress ? `Wallet Connected: ${userAddress.substring(0, 6)}...` : 'Connect Stacks Wallet'}
-              </Button>
-              <Button type="submit" className="w-full" disabled={isSubmitting || !userAddress}>
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <UserPlus className="mr-2 h-4 w-4" />
-                )}
-                {isSubmitting ? 'Signing up...' : 'Sign Up'}
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button type="button" variant="outline" onClick={() => connectWallet(true)} className="w-full">
+                  <Wallet />
+                  {userAddress ? `Wallet Connected: ${userAddress.substring(0, 6)}...` : 'Connect Stacks Wallet'}
+                </Button>
+                <Button type="submit" className="w-full" disabled={isSubmitting || !userAddress}>
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <UserPlus className="mr-2 h-4 w-4" />
+                  )}
+                  {isSubmitting ? 'Signing up...' : 'Sign Up'}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
