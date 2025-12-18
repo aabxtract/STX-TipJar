@@ -27,6 +27,10 @@
           "type": "string",
           "description": "The date and time the user registered.",
           "format": "date-time"
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Indicates if the user has admin privileges."
         }
       },
       "required": [

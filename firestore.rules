@@ -1,29 +1,20 @@
 /**
  * This ruleset enforces a strict user-ownership model for the STX TipJar application.
- * All data is private and can only be accessed by the authenticated user who created it.
+ * All data is private and can only be accessed by the authenticated user who created it, with an exception for admins.
  *
  * Core Philosophy:
- * Users have complete control over their own data and no visibility into the data of other users.
- * Access is granted based on the user's authentication UID matching the document path.
+ * Users have complete control over their own data. Admins have read-only access to all user data for administrative purposes.
+ * Access is granted based on the user's authentication UID matching the document path or having an admin claim.
  *
  * Data Structure:
- * All user-specific data is nested under the `/users/{userId}` path.
- * - `/users/{userId}`: Stores the user's private profile document.
- * - `/users/{userId}/tips/{tipId}`: A subcollection storing all tips sent by that user.
+ * - /users/{userId}: Stores the user's private profile document.
+ * - /users/{userId}/tips/{tipId}: A subcollection storing all tips sent by that user.
  *
  * Key Security Decisions:
  * - Default Deny: All paths are closed by default. Access is only granted through explicit `allow` statements.
- * - No Public Data: There are no publicly readable collections. All access requires authentication.
- * - User Isolation: Listing users is explicitly forbidden (`allow list: if false;` on the `/users` collection) to prevent user enumeration.
+ * - Admin Read Access: Users with `isAdmin == true` on their profile can list all users.
+ * - User Isolation: Non-admin users cannot list other users, preventing user enumeration.
  * - Path-Based Security: Authorization is determined by matching the authenticated user's ID (`request.auth.uid`) with the `{userId}` wildcard in the document path.
- *
- * Denormalization for Authorization:
- * The `Tip` documents, located at `/users/{userId}/tips/{tipId}`, contain a `senderId` field.
- * This ruleset validates that on creation, the `senderId` in the document data matches the `{userId}` from the path.
- * This ensures data integrity and allows for simple, performant security rules without needing cross-document `get()` calls.
- *
- * Structural Segregation:
- * The primary security boundary is the top-level `/users` collection. By scoping all user data within a path dedicated to their UID (`/users/{userId}`), we ensure that a user can only query for and access their own information tree.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -47,6 +38,15 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    /**
+     * Returns true if the requesting user is an admin.
+     * Admins are identified by an `isAdmin` flag in their own user profile document.
+     */
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
 
     /**
      * Returns true if the document exists and the user is the owner.
@@ -66,9 +66,18 @@ service cloud.firestore {
 
     /**
      * Ensures critical relational fields in a User profile are not changed after creation.
+     * Allows admins to change the isAdmin field.
      */
     function isImmutableUserProfile() {
-      return request.resource.data.id == resource.data.id;
+        let isChangingAdminStatus = request.resource.data.isAdmin != resource.data.isAdmin;
+        let coreFieldsUnchanged = request.resource.data.id == resource.data.id;
+        
+        // A regular user cannot change their admin status.
+        if (isChangingAdminStatus && !isAdmin()) {
+            return false;
+        }
+
+        return coreFieldsUnchanged;
     }
 
     /**
@@ -93,31 +102,30 @@ service cloud.firestore {
     /**
      * @description Manages user profile documents. Each user has one document, identified by their UID.
      * @path /users/{userId}
-     * @allow (get, update, delete) A signed-in user (auth.uid='user123') accessing their own document at `/users/user123`.
-     * @allow (create) A new user (auth.uid='user123') creating their profile document for the first time at `/users/user123`.
-     * @deny (any) Any user (auth.uid='userABC') trying to access another user's document at `/users/user123`.
-     * @deny (list) Any user trying to list all documents in the `/users` collection. This prevents user enumeration.
-     * @principle Restricts access to a user's own data tree and validates relational integrity.
+     * @allow (get) A signed-in user accessing their own document, or an admin.
+     * @allow (list) An admin listing all users.
+     * @allow (create) A new user creating their profile document.
+     * @allow (update, delete) A user modifying or deleting their own document. Admins can modify.
+     * @deny (list) Non-admin users trying to list all documents in the `/users` collection.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
       allow create: if isOwner(userId) && isValidUserProfileCreate(userId);
-      allow update: if isExistingOwner(userId) && isImmutableUserProfile();
-      allow delete: if isExistingOwner(userId);
+      allow update: if (isOwner(userId) || isAdmin()) && isImmutableUserProfile();
+      allow delete: if isOwner(userId);
     }
 
     /**
      * @description Manages tip transactions sent by a specific user. Tips are stored in a subcollection under the sender's user profile.
      * @path /users/{userId}/tips/{tipId}
-     * @allow (create) A signed-in user (auth.uid='user123') creating a new tip document at `/users/user123/tips/tipXYZ`.
-     * @allow (get, list, update, delete) A signed-in user (auth.uid='user123') accessing their own tip documents within `/users/user123/tips`.
-     * @deny (any) Any user (auth.uid='userABC') trying to access another user's tips at `/users/user123/tips/{tipId}`.
-     * @principle Enforces document ownership for all operations within a user-specific subcollection.
+     * @allow (get, list) A user accessing their own tips, or an admin.
+     * @allow (create) A user creating a new tip.
+     * @allow (update, delete) A user modifying or deleting their own tip.
      */
     match /users/{userId}/tips/{tipId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidTipCreate(userId);
       allow update: if isExistingOwner(userId) && isImmutableTip();
       allow delete: if isExistingOwner(userId);
